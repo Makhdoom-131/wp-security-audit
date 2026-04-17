@@ -1,8 +1,4 @@
-I understand exactly what is happening! Your browser is deleting the "Enter" key spaces when you copy normal text. 
 
-I have put the exact text inside a dark code box below. **Look for the little "Copy" icon in the top right corner of the dark box below and click that.** That button forces the browser to copy the hidden line breaks!
-
-```markdown
 # WP Security Scanner
 
 A high-speed WordPress security auditor. Scans for exposed endpoints and fingerprints active plugins.
@@ -22,5 +18,4 @@ A high-speed WordPress security auditor. Scans for exposed endpoints and fingerp
 Makhdoom Abdul Aleem
 - Upwork Profile: https://www.upwork.com/freelancers/~015e6c72507369c4a1
 - Email: makhdoomabdulaleem@gmail.com
-- Phone: +92 347 360 6083
-```
+- Phone: +92 347 360 6783

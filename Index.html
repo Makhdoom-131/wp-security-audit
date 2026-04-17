@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WP Security Scanner | Makhdoom Abdul Aleem</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e12;
+  --surface: #111820;
+  --border: #1e2a35;
+  --primary: #0ff0b3; /* Cyber Green */
+  --danger: #ff4757;
+  --warning: #ffa502;
+  --text: #e1e8ed;
+  --muted: #6b7f8e;
+}
+
+* { box-sizing: border-box; }
+body { 
+  font-family: 'Inter', sans-serif; 
+  background: var(--bg); 
+  color: var(--text); 
+  margin: 0; 
+  line-height: 1.6;
+  padding-bottom: 40px;
+}
+.hero { text-align:center; padding:80px 20px 40px; border-bottom: 1px solid var(--border); }
+.hero h1 { margin: 0; font-size: 2.8em; color: var(--primary); font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
+.hero p { color: var(--muted); margin-top: 10px; font-size: 18px; }
+
+.input-box { max-width:800px; margin:40px auto; display:flex; gap:0; padding:0 20px; }
+.input-wrapper {
+  flex: 1;
+  position: relative;
+}
+.input-wrapper input { 
+  width: 100%; padding:16px 20px; border-radius: 8px 0 0 8px; border: 2px solid var(--border); 
+  background: var(--surface); color: var(--text); font-size:16px; 
+  border-right: none;
+}
+.input-wrapper input:focus { outline:none; border-color: var(--primary); }
+button.scan-btn { 
+  padding:16px 32px; background: var(--primary); color: #000; border:none; 
+  border-radius: 0 8px 8px 0; cursor:pointer; font-weight:700; font-size:16px; 
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.3s;
+}
+button.scan-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(15, 240, 179, 0.3); }
+
+#results { max-width:900px; margin:40px auto; padding:0 20px; }
+
+.card { 
+  background: var(--surface); padding:30px; margin-bottom:25px; border-radius:12px; 
+  border: 1px solid var(--border); position: relative; overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--border);
+}
+.card.danger::before { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+.card.warning::before { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
+.card.safe::before { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+.card h3 { margin-top: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+
+.not-wp { border: 1px dashed var(--warning); color: var(--warning); padding: 20px; border-radius: 10px; text-align: center; background: rgba(255, 165, 2, 0.05);}
+
+.badge { display: inline-block; background: rgba(15, 240, 179, 0.1); color: var(--primary); padding: 6px 14px; border-radius: 6px; margin: 4px; font-size: 13px; font-weight: 600; border: 1px solid rgba(15, 240, 179, 0.2); font-family: 'JetBrains Mono', monospace;}
+
+.check-item { background: var(--bg); margin: 12px 0; padding: 18px; border-radius: 8px; display: flex; align-items: flex-start; gap: 15px; border: 1px solid var(--border);}
+.check-icon { font-size: 22px; margin-top: 2px; }
+.check-info h4 { margin: 0 0 5px; font-size: 16px; color: var(--text); }
+.check-info p { margin: 0; font-size: 13px; color: var(--muted); }
+
+/* Author/Branding Section */
+.author-credentials {
+  margin-top: 50px;
+  text-align: center;
+  padding: 30px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 14px;
+}
+.author-credentials strong { color: var(--primary); }
+
+/* ✨ POPUP OVERLAY STYLES */
+.popup-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+.popup-box {
+  background: var(--surface);
+  border: 1px solid var(--primary);
+  border-radius: 16px;
+  max-width: 500px;
+  width: 90%;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(15, 240, 179, 0.15);
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.popup-close {
+  position: absolute;
+  top: 15px; right: 20px;
+  background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer;
+}
+.popup-close:hover { color: #fff; }
+.popup-box h2 { color: var(--primary); margin-top: 0; font-family: 'JetBrains Mono', monospace; font-size: 24px;}
+.popup-box p { color: #bbb; margin-bottom: 30px; font-size: 15px; }
+.popup-box p em { color: var(--text); font-style: normal; font-weight: 600;}
+.btn-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+.btn-upwork { background: #14a800; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; transition: 0.3s;}
+.btn-upwork:hover { background: #118c00; transform: translateY(-2px); }
+.btn-email { background: transparent; color: var(--text); text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: 1px solid var(--border); transition: 0.3s;}
+.btn-email:hover { border-color: var(--text); }
+
+@media (max-width: 600px) {
+  .input-box { flex-direction: column; gap: 10px; padding: 0 15px; }
+  .input-wrapper input { border-radius: 8px; border-right: 2px solid var(--border); }
+  button.scan-btn { border-radius: 8px; }
+  .hero h1 { font-size: 1.8em; }
+  .btn-group { flex-direction: column; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="hero">
+  <h1>&gt; WP_SECURITY_SCAN</h1>
+  <p>Expose vulnerabilities, detect plugins, and audit tech stacks.</p>
+</div>
+
+<div class="input-box">
+  <div class="input-wrapper">
+    <input id="urlInput" type="text" placeholder="target-url.com">
+  </div>
+  <button class="scan-btn" onclick="runScan()">RUN SCAN</button>
+</div>
+
+<div id="results"></div>
+
+<!-- ✨ HIRING POPUP (Hidden by default) -->
+<div class="popup-overlay" id="hirePopup">
+  <div class="popup-box">
+    <button class="popup-close" onclick="closePopup()">×</button>
+    <h2>🚨 Vulnerability Detected.</h2>
+    <p>
+      Your website has security holes that automated bots are actively exploiting right now.<br><br>
+      I'm <em>Makhdoom Abdul Aleem</em>, a Full-Stack WP Developer with a 100% Upwork Job Success Score. I don't just find the bugs—<em>I eliminate them.</em>
+    </p>
+    <div class="btn-group">
+      <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank" class="btn-upwork">Hire Me on Upwork</a>
+      <a href="mailto:makhdoomabdulaleem@gmail.com" class="btn-email">Email Me Directly</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ⚠️ CHANGE THIS TO YOUR WORKER URL
+const API = "https://your-new-wp-worker.makhdoomabdulaleem.workers.dev/?url=";
+
+function closePopup() {
+  document.getElementById('hirePopup').style.display = 'none';
+}
+
+async function runScan() {
+  let url = document.getElementById("urlInput").value.trim();
+  if (!url) return alert("Enter a target URL");
+  if (!url.startsWith("http")) url = "https://" + url;
+
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = `<div class="card"><p style="color:var(--muted); font-family:'JetBrains Mono',monospace;">[+] Initiating connection...<br>[+] Crawling headers & endpoints...</p></div>`;
+  closePopup(); // Hide popup if it was open
+
+  try {
+    const res = await fetch(API + encodeURIComponent(url));
+    if (!res.ok) throw new Error("Scan failed");
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    if (!data.isWordPress) {
+      resultsDiv.innerHTML = `<div class="not-wp">⚠️ Target is not WordPress, or actively blocking automated scans.</div>`;
+      return;
+    }
+
+    const sec = data.security;
+    const failures = [sec.readmeExposed, sec.jsonUsersExposed, sec.xmlrpcExposed].filter(Boolean).length;
+    const secClass = failures === 0 ? 'safe' : failures <= 1 ? 'warning' : 'danger';
+    const secText = failures === 0 ? 'SECURE' : failures <= 1 ? 'AT RISK' : 'CRITICAL THREAT';
+
+    resultsDiv.innerHTML = `
+      <div class="card ${secClass}">
+        <h3>System Status: ${secText}</h3>
+        <p style="color:var(--muted); margin:0;">Found ${failures}暴露点 (exposure points).</p>
+      </div>
+
+      <div class="card">
+        <h3>🛠 Fingerprinted Technology</h3>
+        <p style="color:var(--muted); margin-bottom:10px;">Page Builders:</p>
+        ${data.pageBuilder.length ? data.pageBuilder.map(p => `<span class="badge">${p}</span>`).join("") : '<span style="color:var(--muted)">Hidden / Custom</span>'}
+        <p style="color:var(--muted); margin: 20px 0 10px;">Active Plugins:</p>
+        ${data.plugins.length ? data.plugins.map(p => `<span class="badge">${p}</span>`).join("") : '<span style="color:var(--muted)">Hidden / Unknown</span>'}
+      </div>
+
+      <div class="card danger">
+        <h3>🔓 Endpoint Audit</h3>
+        
+        <div class="check-item">
+          <span class="check-icon">${sec.readmeExposed ? '❌' : '✅'}</span>
+          <div class="check-info">
+            <h4>readme.html</h4>
+            <p>${sec.readmeExposed ? 'Exposed. Leaks exact WP version to attackers.' : 'Hidden or removed.'}</p>
+          </div>
+        </div>
+
+        <div class="check-item">
+          <span class="check-icon">${sec.loginExposed ? '⚠️' : '✅'}</span>
+          <div class="check-info">
+            <h4>wp-login.php</h4>
+            <p>${sec.loginExposed ? 'Accessible. Vulnerable to Brute-Force bot attacks.' : 'Properly secured or hidden.'}</p>
+          </div>
+        </div>
+
+        <div class="check-item">
+          <span class="check-icon">${sec.xmlrpcExposed ? '❌' : '✅'}</span>
+          <div class="check-info">
+            <h4>xmlrpc.php</h4>
+            <p>${sec.xmlrpcExposed ? 'Enabled. Massive DDoS and Brute-Force attack vector.' : 'Disabled. Safe.'}</p>
+          </div>
+        </div>
+
+        <div class="check-item">
+          <span class="check-icon">${sec.jsonUsersExposed ? '❌' : '✅'}</span>
+          <div class="check-info">
+            <h4>REST API User Enumeration</h4>
+            <p>${sec.jsonUsersExposed ? 'Exposed. Hackers can scrape your admin usernames right now.' : 'Blocked securely.'}</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="author-credentials">
+        <p>Audit Generated By <strong>Makhdoom Abdul Aleem</strong><br>
+        <span style="font-size:12px;">Full-Stack Developer | 100% Job Success Score | Mehran University Alumni</span></p>
+      </div>
+    `;
+
+    // ✨ SHOW POPUP IF VULNERABILITIES FOUND
+    if (failures > 0) {
+      setTimeout(() => {
+        document.getElementById('hirePopup').style.display = 'flex';
+      }, 1500); // Wait 1.5 seconds after results load to show popup
+    }
+
+  } catch (e) {
+    console.error(e);
+    resultsDiv.innerHTML = `<div class="card danger"><h3>Connection Failed</h3><p>Target is likely using aggressive bot-protection (e.g., Cloudflare Under Attack Mode).</p></div>`;
+  }
+}
+
+document.getElementById("urlInput").addEventListener("keypress", e => { if (e.key === "Enter") runScan(); });
+</script>
+</body>
+</html>
